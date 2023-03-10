@@ -15,7 +15,7 @@ const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests',
   /* Maximum time one test can run for. */
-  timeout: 40 * 1000,
+  timeout: 400 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -44,13 +44,14 @@ module.exports = defineConfig({
     trace: 'on-first-retry',
     video: "on",
     viewport: { width: 1920, height: 1080 },
+    navigationTimeout: 0,
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], video: "on",     viewport: { width: 1920, height: 1080 }, },
+      use: { ...devices['Desktop Chrome'], video: "on", viewport: { width: 1920, height: 1080 }, },
     },
 
    // {

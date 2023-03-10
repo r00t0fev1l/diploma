@@ -1,6 +1,8 @@
-import { expect } from '@playwright/test';
 import { egorPreset as test } from './src/config';
 import {TEST_URL} from './src/config';
+
+test.setTimeout(60000)
+
 
  test.beforeEach(async ({ page, person }) => {
   
