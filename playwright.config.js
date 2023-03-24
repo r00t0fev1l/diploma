@@ -14,7 +14,7 @@ const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests',
   /* Maximum time one test can run for. */
-  timeout: 400 * 1000,
+  timeout: 80 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -42,15 +42,19 @@ module.exports = defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     video: "on",
-    viewport: { width: 1920, height: 1080 },
-    navigationTimeout: 0,
+    viewport: {height: 880, width: 1800},
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], video: "on", viewport: { width: 1920, height: 1080 }, },
+      use: { ...devices['Desktop Chrome'], video: "on",
+      viewport: {height: 880, width: 1800},         
+      launchOptions: {
+        args: ["--start-fullscreen"], // starting the browser in full screen
+        //slowMo: 1000, // a 1000 milliseconds pause before each operation. Useful for slow systems.
+      },},
     },
 
    // {
