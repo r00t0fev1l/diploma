@@ -1,8 +1,6 @@
+import { expect } from '@playwright/test';
 import { egorPreset as test } from './src/config';
 import {TEST_URL} from './src/config';
-
-test.setTimeout(60000)
-
 
  test.beforeEach(async ({ page, person }) => {
   
@@ -26,18 +24,17 @@ test.setTimeout(60000)
   await page.getByRole('textbox').fill('5118215');
   await page.getByRole('button', { name: 'Продолжить' }).click();
   await page.getByRole('button', { name: 'Создать шаблон' }).click();
-
-
+  await page.waitForTimeout(2000);
  });
 
  test('Удаление шаблона', async ({ page }) => { 
 
   await page.getByText('Шаблоны').click();
-  await page.locator('.popup-menu').first().click(); // падение
+  await page.locator('.popup-menu').first().click(); 
   await page.getByText('Удалить').first().click();
   await page.getByRole('button', { name: 'Да', exact: true }).click();
   await page.getByRole('button', { name: 'Ок' }).click();
-  
+  await page.waitForTimeout(2000);
  });
 
  test('Перевод между своими счетами', async ({ page }) => {
@@ -50,8 +47,77 @@ test.setTimeout(60000)
   await page.locator('input[type="text"]').fill('0,01');
   await page.getByRole('button', { name: 'Перевести' }).click();
   await page.getByRole('button', { name: 'Подтвердить' }).click();
-
+  await page.waitForTimeout(2000);
 });
+
+test('Перевод по лицевому счету внутри банка', async ({ page }) => {
+
+  await page.getByText('Перевести деньги').click();
+  await page.getByText('Клиенту Банка "КУБ" (АО)').click();
+  await page.getByRole('link', { name: 'По номеру счёта' }).click();
+  await page.getByRole('spinbutton').click();
+  await page.getByRole('spinbutton').fill('09882405401');
+  await page.locator('input[type="text"]').click();
+  await page.locator('input[type="text"]').fill('0,01');
+  await page.getByRole('button', { name: 'Перевести' }).click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+  await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
+});  
+
+test('Перевод на карту внутри банка', async ({ page }) => {
+
+  await page.getByText('Перевести деньги').click();
+  await page.getByText('Клиенту Банка "КУБ" (АО)').click();
+  await page.locator('text-control').getByRole('textbox').click();
+  await page.locator('text-control').getByRole('textbox').fill('2200 5602 2179 0774');
+  await page.locator('amount-control').getByRole('textbox').click();
+  await page.locator('amount-control').getByRole('textbox').fill('0,01');
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Перевести' }).click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+  await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
+});
+
+test('Перевод СБП внутри банка', async ({ page }) => {
+
+  await page.getByText('Перевести деньги').click();
+  await page.getByText('По номеру телефона').click();
+  await page.getByRole('button', { name: 'По номеру телефона' }).click();
+  await page.getByPlaceholder('+X (XXX) XXX-XX-XX').fill('+7 (909) 092-82-20');
+  await page.locator('input[type="text"]').click();
+  await page.locator('input[type="text"]').fill('0,01');
+  await page.getByRole('button', { name: 'Перевести' }).click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+  await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
+});
+
+test('Перевод по реквизитам', async ({ page, context }) => {
+
+  await page.getByText('Перевести деньги').click();
+  await page.getByText('Перевод по реквизитам').click();
+  await page.getByRole('button', { name: 'По реквизитам' }).click();
+  await page.getByPlaceholder('Введите БИК или банк получателя').click();
+  await page.keyboard.type('047516949', {delay: 500});
+  await page.waitForTimeout(2000);
+  await page.keyboard.press('Enter');
+  await page.getByPlaceholder('Введите номер счета').click();
+  await page.getByPlaceholder('Введите номер счета').fill('40817 810 8 3028 2405401');
+  await page.getByPlaceholder('Введите сумму').click();
+  await page.getByPlaceholder('Введите сумму').fill('10');
+  await page.getByRole('button', { name: 'Перевести' }).click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click(); 
+  const modal = page.locator('.modal.ng-trigger.ng-trigger-fadeInOut');
+  await modal.waitFor({state:'visible'});
+  await page.waitForTimeout(3000);
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+  await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
+});    
 
 test('Получение реквизитов', async ({ page, context }) => {
  
@@ -82,6 +148,39 @@ test('Выписка о доходах, расходах, имуществе и 
   await page1.waitForTimeout(5000)
 });
 
+test('Справка об уплаченных процентах по ипотечному кредиту - в случае если у клиента отсутствуют данные договоры', async ({ page, context }) => {
+
+  await page.getByText('Еще').click();
+  await page.getByText('Справки').click();
+  await page.getByText('Об уплаченных процентах по ипотечному кредиту').click();
+  await page.getByRole('button', { name: 'Ок' }).click();
+  await page.locator('ab-menu').getByText('Главная').click();
+  await page.waitForTimeout(2000);
+
+});  
+
+test('Справка об отсутствии задолженности-кредитные договоры были ранее', async ({ page, context }) => {
+
+  await page.getByText('Еще').click();
+  await page.getByText('Справки').click();
+  await page.getByText('Об отсутствии задолженности').click();
+  const page1Promise = context.waitForEvent('page');
+  await page.getByText(/^Справка об отсутствии задолженности от [0-9a-z.-\s]*\.pdf$/).click();
+  const page1 = await page1Promise;
+  await page1.waitForLoadState();
+  await page1.waitForTimeout(5000)
+
+});  
+
+test('Расчетный листок - клиент у которого табулька передается', async ({ page }) => {
+
+  await page.getByText('Еще').click();
+  await page.getByText('Расчетный листок').click();
+  await page.getByRole('button', { name: 'Сформировать' }).click(); 
+  (await page.waitForSelector(".pay-slip-page__link-download", {state:'visible'})).click();
+  await page.waitForTimeout(5000);
+});  
+
 test('Оплата услуги - Теплофикация', async ({ page }) => {
  
   await page.getByText('Оплатить услуги').click();
@@ -93,9 +192,11 @@ test('Оплата услуги - Теплофикация', async ({ page }) =>
   await page.getByRole('button', { name: 'Продолжить' }).click();
   await page.locator('amount-control').getByRole('textbox').click();
   await page.locator('amount-control').getByRole('textbox').fill('0,01');
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Оплатить' }).click();
   await page.locator('multi-payment-confirmation').getByRole('button', { name: 'Оплатить' }).click();
   await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
 });
 
 test('Оплата мультиплатежа ГКС', async ({ page }) => {
@@ -115,6 +216,7 @@ test('Оплата мультиплатежа ГКС', async ({ page }) => {
   await page.getByRole('button', { name: 'Оплатить' }).click();
   await page.locator('multi-payment-confirmation').getByRole('button', { name: 'Оплатить' }).click();
   await page.getByRole('button', { name: 'Вернуться на главную страницу' }).click();
+  await page.waitForTimeout(2000);
   
 });
 
@@ -134,7 +236,7 @@ test('Изменение Pin-кода', async ({ page }) => {
   await confirmPin.fill('7777');
   await page.getByRole('button', { name: 'Сменить PIN-код' }).click();
   await page.getByRole('button', { name: 'Ок' }).click();
-  
+  await page.waitForTimeout(2000);
 });
 
 test('Пополнить счет', async ({ page }) => { 
@@ -148,10 +250,10 @@ test('Пополнить счет', async ({ page }) => {
   await page.locator('input[type="text"]').fill('0,01');
   await page.getByRole('button', { name: 'Перевести' }).click();
   await page.getByRole('button', { name: 'Подтвердить' }).click();
-
+  await page.waitForTimeout(2000);
 });
 
-test('Проверка баннера', async ({ page }) => {
+test('Блокировка и разблокировка карты', async ({ page }) => { 
 
   await page.getByText('Карты', { exact: true }).click();
   await page.getByText('Виртуальная карта МИРT').click();
@@ -169,5 +271,5 @@ test('Проверка баннера', async ({ page }) => {
   await page.getByRole('button', { name: 'Подтвердить' }).click();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.locator('ab-menu').getByText('Главная').click();
-
+  await page.waitForTimeout(2000);
 });
